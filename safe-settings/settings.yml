@@ -8,6 +8,11 @@ repository:
   has_projects: false
   delete_branch_on_merge: true
 
+# Bypass users below need at least push access, or GitHub drops them silently.
+collaborators:
+  - username: rwos
+    permission: push
+
 branches:
   - name: default
     protection:
