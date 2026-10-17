@@ -1,0 +1,5 @@
+# Repos safe-settings must never touch.
+restrictedRepos:
+  exclude:
+    - .github
+    - schema

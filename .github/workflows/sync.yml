@@ -1,0 +1,52 @@
+name: safe-settings sync
+
+on:
+  push:
+    branches: [main]
+    paths: [safe-settings/**]
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only show changes, do not apply them
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-settings
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      SAFE_SETTINGS_VERSION: 3.0.0
+      SAFE_SETTINGS_CODE_DIR: ${{ github.workspace }}/.safe-settings-code
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: github/safe-settings
+          ref: ${{ env.SAFE_SETTINGS_VERSION }}
+          path: .safe-settings-code
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: ${{ env.SAFE_SETTINGS_CODE_DIR }}
+      - run: npm run full-sync
+        working-directory: ${{ env.SAFE_SETTINGS_CODE_DIR }}
+        env:
+          GH_ORG: runway-templates
+          APP_ID: ${{ vars.SAFE_SETTINGS_APP_ID }}
+          PRIVATE_KEY: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
+          ADMIN_REPO: .github
+          CONFIG_PATH: safe-settings
+          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/safe-settings/deployment-settings.yml
+          FULL_SYNC_NOP: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          # Probot logs nothing when unset. Use "debug" for the full diff.
+          LOG_LEVEL: ${{ vars.SAFE_SETTINGS_LOG_LEVEL || 'info' }}

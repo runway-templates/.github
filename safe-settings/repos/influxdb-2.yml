@@ -1,0 +1,3 @@
+repository:
+  description: InfluxDB 2 template for Runway.
+  topics: [runway, runway-template, influxdb]
